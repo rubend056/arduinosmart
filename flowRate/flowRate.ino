@@ -12,7 +12,7 @@
 
 */
 
-const int ledPin = 13;
+const int ledPin = 5;
 byte sensorInterrupt = 0;
 byte sensorPin       = 2;
 
@@ -81,9 +81,12 @@ void setup()
   totalMilliLitres  = 0;
   oldTime           = 0;
 
+  
   radio.begin();
   network.begin( 85, this_node);
 
+  digitalWrite(ledPin,HIGH);
+  ledBlink(5,500);
   // The Hall-effect sensor is connected to pin 2 which uses interrupt 0.
   // Configured to trigger on a FALLING state change (transition from HIGH
   // state to LOW state)
@@ -100,8 +103,7 @@ void loop()
   if (network.available()){
     readRF24();
     if (type == request){
-      values[0] = totalMilliLitres / 1000;
-      sendRF24(0);
+      report();
     }
   }
   
@@ -167,7 +169,22 @@ bool sendRF24(uint16_t whereTo) {
   return ok;
 }
 
+void report() {
+  delay(10);
+  type = info;
+  values[0] = totalMilliLitres / 1000;
+  sendRF24(00);
+}
 
+void ledBlink(int count, int del) {
+  del = (del*1000)/(count*2);
+  for (int i = 0; i < count; i++) {
+    digitalWrite(ledPin, !(bitRead(PORTD, ledPin)));
+    delayMicroseconds(del);
+    digitalWrite(ledPin, !(bitRead(PORTD, ledPin)));
+    delayMicroseconds(del);
+  }
+}
 
 void pulseCounter()
 {

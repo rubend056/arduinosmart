@@ -107,7 +107,7 @@ void readPacket(int size) {
 }
 
 bool sendPacket(String text, IPAddress ip, int port) {
-  Serial.println(ip);
+  //Serial.println(ip);
   bool success = true;
   do
   {

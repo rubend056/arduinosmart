@@ -170,7 +170,6 @@ void setup() {
   radio.begin();
   network.begin(/*channel*/ 85, /*node address*/ this_node);
 
-  Serial.begin(9600);
   report();
 }
 
@@ -248,6 +247,8 @@ void menuUpdate() {
 }
 
 void readRF24() {
+  lcd.setCursor(5, 1);
+  lcd.print("X");
   RF24NetworkHeader header;
   payload_thermostat payload;
   network.read(header, &payload, sizeof(payload));
@@ -258,6 +259,8 @@ void readRF24() {
   int payloadValues[] {payload.value, payload.value1,
                        payload.value2, payload.value3, payload.value4, payload.value5
                       };
+  lcd.setCursor(5, 1);
+  lcd.print(" ");
 
   for (int i = 0; i < ammount; i++) {
     values[i] = payloadValues[i];
@@ -274,10 +277,17 @@ void updateValues() {
 }
 
 bool sendRF24(uint16_t whereTo) {
+  lcd.setCursor(6, 1);
+  lcd.print("X");
   payload_thermostat payload = { type, valueType , values[0], values[1], values[2], values[3], values[4], values[5]};
   RF24NetworkHeader header(whereTo);
   bool ok = network.write(header, &payload, sizeof(payload));
 
+  delay(150);
+  
+  lcd.setCursor(6, 1);
+  lcd.print(" ");
+  
   return ok;
 }
 
@@ -598,7 +608,7 @@ int down(int value, int limit) {
 }
 
 void report() {
-  delay(20);
+  delay(10);
   type = info;
   updateValues();
   connection = (sendRF24(parent_node));
