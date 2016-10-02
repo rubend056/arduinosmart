@@ -69,7 +69,7 @@ void loop() {
     if (c)digitalWrite(ledPin, LOW); else digitalWrite(ledPin, HIGH);
     if ((type == request) and (c)) {
 
-      c = waitRF24(600);
+      c = waitRF24(1000);
       if (!(c)) {
         Serial.println("none");
       }
