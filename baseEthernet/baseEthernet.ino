@@ -62,7 +62,7 @@ void loop() {
     } else if (type == request) {
       Serial.println(rebuild());
       bool c = true;
-      c = waitSerial(1000);
+      c = waitSerial(1100);
       //Serial.println(count);//**************
       if ((c) and (count == toCheck)) {
         updateStorage();      // reads values and puts them in appropiate storage position

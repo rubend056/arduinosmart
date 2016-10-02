@@ -41,6 +41,8 @@ enum devices {
   waterFlow
 };
 
+const devices myDeviceId = base;
+
 conn type;
 devices devId;
 int valueType;
@@ -67,7 +69,7 @@ void loop() {
     if (c)digitalWrite(ledPin, LOW); else digitalWrite(ledPin, HIGH);
     if ((type == request) and (c)) {
 
-      c = waitRF24(500);
+      c = waitRF24(600);
       if (!(c)) {
         Serial.println("none");
       }

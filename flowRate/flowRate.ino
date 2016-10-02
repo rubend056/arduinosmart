@@ -29,7 +29,7 @@ volatile byte pulseCount;
 
 float flowRate;
 unsigned int flowMilliLitres;
-unsigned long totalMilliLitres;
+unsigned long totalMilliLitres = 1000;
 
 unsigned long oldTime;
 
@@ -52,6 +52,8 @@ enum devices {
   waterFlow
 };
 
+const devices myDeviceId = waterFlow;
+
 conn type;
 devices devId;
 int valueType;
@@ -64,7 +66,7 @@ void setup()
 {
 
   // Initialize a serial connection for reporting values to the host
-  Serial.begin(9600);
+  //Serial.begin(9600);
 
   // Set up the status LED line as an output
   pinMode(ledPin, OUTPUT);
@@ -98,6 +100,7 @@ void loop()
   if (network.available()){
     readRF24();
     if (type == request){
+      values[0] = totalMilliLitres / 1000;
       sendRF24(0);
     }
   }
@@ -117,22 +120,22 @@ void loop()
     totalMilliLitres += flowMilliLitres;
 
     unsigned int frac;
-
-    Serial.print("Flow rate: ");
-    Serial.print(int(flowRate));  // Print the integer part of the variable
-    Serial.print(".");             // Print the decimal point
+    
+    //Serial.print("Flow rate: ");
+    //Serial.print(int(flowRate));  // Print the integer part of the variable
+    //Serial.print(".");             // Print the decimal point
 
     frac = (flowRate - int(flowRate)) * 10;
-    Serial.print(frac, DEC) ;      // Print the fractional part of the variable
-    Serial.print("L/min");
+    //Serial.print(frac, DEC) ;      // Print the fractional part of the variable
+    //Serial.print("L/min");
 
-    Serial.print("  Current Liquid Flowing: ");             // Output separator
-    Serial.print(flowMilliLitres);
-    Serial.print("mL/Sec");
+    //Serial.print("  Current Liquid Flowing: ");             // Output separator
+    //Serial.print(flowMilliLitres);
+    //Serial.print("mL/Sec");
 
-    Serial.print("  Output Liquid Quantity: ");             // Output separator
-    Serial.print(totalMilliLitres);
-    Serial.println("mL");
+    //Serial.print("  Output Liquid Quantity: ");             // Output separator
+    //Serial.print(totalMilliLitres);
+    //Serial.println("mL");
 
     pulseCount = 0;
 
