@@ -69,6 +69,7 @@ void loop() {
     if (c)digitalWrite(ledPin, LOW); else digitalWrite(ledPin, HIGH);
     if ((type == request) and (c)) {
 
+      
       c = waitRF24(1000);
       if (!(c)) {
         Serial.println("none");
@@ -92,6 +93,8 @@ void readRF24() {
   RF24NetworkHeader header;
   network.peek(header);
   devId = header.from_node;
+
+  //Serial.println(devId);//***************************************************************
   
   if(devId == thermostat){
       payload_thermostat payload;
@@ -117,19 +120,23 @@ void readRF24() {
 }
 
 bool sendRF24(uint16_t whereTo) {
+  
+  bool ok = false;
+  
+  //Serial.println(String(whereTo) + String(type) + String(valueType));//***************************************************************
   digitalWrite(ledPin, !(bitRead(PORTD, ledPin)));
-  bool ok;
-  RF24NetworkHeader header(whereTo);
   
   if (whereTo == waterFlow){
     payload_flow payload = { type, valueType , values[0]};
+    RF24NetworkHeader header(whereTo);
     ok = network.write(header, &payload, sizeof(payload));
   } else if (whereTo == thermostat){
     payload_thermostat payload = { type, valueType , values[0], 0, 0, 0, 0, 0};
+    RF24NetworkHeader header(whereTo);
     ok = network.write(header, &payload, sizeof(payload));
   }
-  
   digitalWrite(ledPin, !(bitRead(PORTD, ledPin)));
+  
   return ok;
 }
 

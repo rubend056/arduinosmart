@@ -81,7 +81,7 @@ unsigned long backTime;
 unsigned long fanTime;
 unsigned long coolingTime;
 //unsigned long iconTime;
-int iconCount = 10;
+//int iconCount = 10;
 int sPos = 1;
 int scroll = 1;
 int encoderLast = 0;

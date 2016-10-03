@@ -29,7 +29,7 @@ volatile byte pulseCount;
 
 float flowRate;
 unsigned int flowMilliLitres;
-unsigned long totalMilliLitres = 1000;
+unsigned long totalMilliLitres;
 
 unsigned long oldTime;
 
@@ -85,8 +85,8 @@ void setup()
   radio.begin();
   network.begin( 85, this_node);
 
-  digitalWrite(ledPin,HIGH);
-  ledBlink(5,500);
+  digitalWrite(ledPin,LOW);
+  //ledBlink(5,500);
   // The Hall-effect sensor is connected to pin 2 which uses interrupt 0.
   // Configured to trigger on a FALLING state change (transition from HIGH
   // state to LOW state)
@@ -172,8 +172,8 @@ bool sendRF24(uint16_t whereTo) {
 void report() {
   delay(10);
   type = info;
-  values[0] = totalMilliLitres / 1000;
-  sendRF24(00);
+  values[0] = int(totalMilliLitres / 1000);
+  sendRF24(0);
 }
 
 void ledBlink(int count, int del) {
