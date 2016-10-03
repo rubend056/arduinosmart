@@ -11,8 +11,8 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 dht DHT;
 SCREEN scr = Menu;
 
-const unsigned int waitAfterOn = 360;
-const unsigned int waitAfterOff = 360;
+unsigned int waitAfterOn = 720;
+unsigned int waitAfterOff = 360;
 
 
 uint8_t on[8]  = {0x0, 0xe, 0x11, 0x15, 0x15, 0x11, 0xe, 0x0};
@@ -110,7 +110,9 @@ enum conn {
 enum valType {
   desiredTemperature,
   temperatureValue,
-  automaticFan
+  automaticFan,
+  upTime,
+  downTime
 };
 
 conn type;
@@ -178,17 +180,27 @@ void loop() {
   if (network.available()) {
     readRF24();
     if (type == set) {
-      if (valueType == desiredTemperature) {
-        if ((values[0] <= temp + 10) and (values[0] >= temp - 10))desTemp = values[0];
-        if (desTemp >= 100)lcd.setCursor(13, 0); else lcd.setCursor(14, 0);
-        lcd.print(desTemp);
-      } else if (valueType == temperatureValue) {
-        if (values[0] == 1)tempValue = 'F'; else tempValue = 'C';
-        setTemp();
-        lcd.setCursor(15, 1);
-        lcd.print(tempValue);
-      } else if (valueType == automaticFan) {
-        fanAuto = (bool)values[0];
+      switch (valueType){
+        case desiredTemperature:
+          if ((values[0] <= temp + 10) and (values[0] >= temp - 10))desTemp = values[0];
+          if (desTemp >= 100)lcd.setCursor(13, 0); else lcd.setCursor(14, 0);
+          lcd.print(desTemp);
+          break;
+        case temperatureValue:
+          if (values[0] == 1)tempValue = 'F'; else tempValue = 'C';
+          setTemp();
+          lcd.setCursor(15, 1);
+          lcd.print(tempValue);
+          break;
+        case automaticFan:
+          fanAuto = (bool)values[0];
+          break;
+        case upTime:
+          if(values[0]>=0)waitAfterOn = values[0];
+          break;
+        case downTime:
+          if(values[0]>=0)waitAfterOff = values[0];
+          break;
       }
     }
     report();
