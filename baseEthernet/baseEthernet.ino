@@ -28,6 +28,9 @@ int count;
 
 int minimum = 14;
 
+EthernetServer server = EthernetServer(myPort);
+EthernetClient clients[4];
+
 void setup() {
 
   Serial.begin(9600);
@@ -38,28 +41,30 @@ void setup() {
   Ethernet.begin(mac, ip);
 
   received.reserve(30);
-  udp.begin(myPort);
+  //udp.begin(myPort);
+  server.begin();
+
   digitalWrite(ledPin, HIGH);
 }
 
 void loop() {
   int toCheck = ammount + 3;
-  
+
   if (serial()) {
     if (count == toCheck)updateStorage();
   }
 
-  int size = udp.parsePacket();
-  if (size > 0) {
+  //int size = udp.parsePacket();
+  if (EthernetClient client = server.available()) {
     String toSend;
-    readPacket(size);     //read ethernet packet and output to string received
+    readPacket(client);    //read ethernet packet and output to string received
     count = decipher(received);   //convert string to set values
-    ledBlink(count, 250);  //blink LED
-    //Serial.println(count);//*d**********
+      ledBlink(count, 250);  //blink LED
+      //Serial.println(count);//*d**********
 
-    if (type == set) {
+      if (type == set) {
       Serial.println(rebuild());
-    } else if (type == request) {
+      } else if (type == request) {
       Serial.println(rebuild());
       bool c = true;
       c = waitSerial(1100);
@@ -70,55 +75,28 @@ void loop() {
       } else {
         toSend = "not available";
       }
-      toSend += '\n';
-      sendPacket(toSend, udp.remoteIP(), myPort);
-    } else if (type == requestOld) {
+      client.println(toSend);
+      } else if (type == requestOld) {
       //Serial.println(received);//***********
       //Serial.println(devId);//***********
       //Serial.println(count);
       toSend = getStorage(devId);
-      toSend += '\n';
-      sendPacket(toSend, udp.remoteIP(), myPort);
-    }
+      client.println(toSend);
+      }
 
-    udp.stop();
-    udp.begin(myPort);
+      //client.stop();
   }
 }
 
-void readPacket(int size) {
-  digitalWrite(ledPin, !(bitRead(PORTD, ledPin)));
+void readPacket(EthernetClient client) {
   received = "";
-  do
-  {
-    char* msg = (char*)malloc(size + 1);
-    int len = udp.read(msg, size + 1);
-    msg[len] = 0;
-    received += msg;
-    free(msg);
+
+  while (client.available() > 0) {
+    char first = client.read();
+    if (first == '\n')break;
+    received += first;
   }
-  while ((size = udp.available()) > 0);
-
-  udp.flush();
-  //Serial.println("'");
-
-  received.trim();
-  digitalWrite(ledPin, !(bitRead(PORTD, ledPin)));
-}
-
-bool sendPacket(String text, IPAddress ip, int port) {
-  //Serial.println(ip);
-  bool success = true;
-  do
-  {
-    if (!udp.beginPacket(ip, port)) success = false;
-  }
-  while (!success);
-
-  if (!udp.print(text)) success = false;
-  if (!udp.endPacket()) success = false;
-
-  return success;
+  
 }
 
 int decipher(String toDec) {
@@ -136,8 +114,8 @@ int decipher(String toDec) {
     if (c == 1)type = val;
     if (c == 2)devId = val;
     if (c == 3)valueType = val;
-    if (c >= 4)values[c-4] = val;
-    
+    if (c >= 4)values[c - 4] = val;
+
     c++;
     i++;
 
@@ -163,11 +141,11 @@ String rebuild () {
   here += String(type) + ',';
   here += String(devId) + ',';
   here += String(valueType) + ',';
-  
-  for (int i = 0; i<ammount;i++){
+
+  for (int i = 0; i < ammount; i++) {
     here += String(values[i]) + ',';
   }
-  here.remove(here.length()-1);
+  here.remove(here.length() - 1);
 
   return here;
 }

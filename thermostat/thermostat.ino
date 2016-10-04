@@ -1,5 +1,6 @@
 #include <RF24Network.h>
 #include <RF24.h>
+#include <EEPROM.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <dht.h>
@@ -153,20 +154,24 @@ void setup() {
   lcdWrite(scr);
   delay(1000);
   scr = Menu;
-  fanTime = millis();
-
+  fanTime = millis();  
 
   DHT.read11(dhtPin);
   temp = readTemp(tempValue);
   hum = readHum();
   int newTemp = readTemp(tempValue);
-  desTemp = newTemp + 5;
+  desTemp = newTemp + 1;
   for (int i = 0; i < 29; i++)tempA[i] = newTemp;
   average = tempAverage();
   tempTime = millis();
+  
+  //EEPROM implementation
+  int r; 
+  EEPROM.get(0,r);
+  if((r > 0) && (r<200))desTemp = r;
+  
   lcd.clear();
   lcdWrite(scr);
-
 
   SPI.begin();
   radio.begin();
@@ -309,6 +314,7 @@ void backControl() {
     if (scr != Menu)scr = Menu;
     if (backCheck) {
       backCheck = LOW;
+      EEPROM.put(0,desTemp);
       lcdWrite(scr);
     }
   } else {
