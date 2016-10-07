@@ -80,6 +80,7 @@ unsigned long bTimer;
 bool fanAuto = HIGH, showHum = HIGH, autoBack = HIGH;
 unsigned long backTime;
 unsigned long fanTime;
+unsigned long acTimer;
 unsigned long coolingTime;
 //unsigned long iconTime;
 //int iconCount = 10;
@@ -154,7 +155,8 @@ void setup() {
   lcdWrite(scr);
   delay(1000);
   scr = Menu;
-  fanTime = millis();  
+  fanTime = millis();
+  acTimer = millis();  
 
   DHT.read11(dhtPin);
   temp = readTemp(tempValue);
@@ -230,7 +232,10 @@ void loop() {
   if (millis() > 1500)button = digitalRead(buttonPin);
   updateButton();
   updateEncoder();
-  if (millis() >= fanTime + 4000)acController();
+  if (millis() >= acTimer + 2000){
+    acController();
+    acTimer = millis();
+  }
   menuUpdate();
 
   connectionl = connection;
@@ -569,31 +574,52 @@ bool shouldBe() {
   if (average > desTemp)return HIGH; else return LOW;
 }
 bool after(unsigned long tim, unsigned int howLong) {
-  return (millis() > (tim + (howLong*1000)));
+  bool toReturn = (millis() >= (tim + (howLong * 1000)));
+  return toReturn;
 }
+
 
 void acController() {
 
-  if (checkFan() == LOW) {
-    if (fanAuto == HIGH) {
-      if ((shouldBe() == HIGH) && after(fanTime,waitAfterOff)) {
-        digitalWrite(fanPin, HIGH);
-        fanTime = millis();
+  if (fanAuto == HIGH) {
+    if (checkFan()) {
+      if (shouldBe()) {
+        if (after(fanTime, 10))digitalWrite(coolPin, HIGH);
+      } else {
+        if (after(fanTime, waitAfterOn)) {
+          digitalWrite(fanPin, LOW);
+          digitalWrite(coolPin, LOW);
+          fanTime = millis();
+          Serial.println("LOW");
+        }
       }
-    } else digitalWrite(fanPin, HIGH);
-  } else if ((fanAuto == HIGH) && (shouldBe() == LOW) && after(fanTime, waitAfterOn)) {
-    digitalWrite(fanPin, LOW);
+    } else {
+      if(after(fanTime,waitAfterOff)){
+        if(shouldBe()){
+          digitalWrite(fanPin,HIGH);
+          fanTime = millis();
+        }
+      }
+    }
+  } else {
+    digitalWrite(fanPin, HIGH);
+    if (checkCool() == HIGH) {
+      if (after(fanTime, waitAfterOn) == HIGH) {
+        if(shouldBe() == LOW){
+          digitalWrite(coolPin,LOW);
+          fanTime = millis();
+        }
+        
+      }
+    } else {
+      if (after(fanTime, waitAfterOff) == HIGH) {
+        if(shouldBe()){
+          digitalWrite(coolPin,HIGH);
+          fanTime = millis();
+        }
+      }
+    }
   }
-
-  if ((checkFan() == HIGH)  && (checkCool() == LOW) && (shouldBe() == HIGH) &&  after(fanTime, 5)) {
-    digitalWrite(coolPin, HIGH);
-    fanTime = millis();
-    //coolingTime = millis();
-  } else if ((shouldBe() == LOW) && (checkCool() == HIGH) && after(fanTime, waitAfterOn)) {
-    digitalWrite(coolPin, LOW);
-    fanTime = millis();
-  }
-
 }
 
 void setTemp() {
